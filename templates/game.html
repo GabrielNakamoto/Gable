@@ -1,0 +1,45 @@
+<!doctype html>
+<head>
+    <title>Gable</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div id="spacer"></div>
+    <div id="game">
+        <h1 id="title">Gable</h1><br><br>
+        <div class="container">{{ serialize_state()|safe }}</div>
+        <button id="reset" hx-post="/reset-state" hx-swap="none">New Word</button>
+    </div>
+    <div id="help">
+        <h1>How To Play</h1>
+        <p>Guess the Gable in 6 tries.</p>
+        <ul>
+            <li>Each guess must be a valid 5-letter word.</li>
+            <li>The color of the tiles will change to show how close your guess was to the word.</li>
+        </ul>
+        <h3>Examples</h3>
+        {{ string_to_div("WORDY")|safe}}
+        <p><b>W</b> is in the word and in the correct spot.</p>
+        {{string_to_div("LIGHT")|safe}}
+        <p><b>I</b> is in the word but in the wrong spot.</p>
+        {{string_to_div("ROGUE")|safe}}
+        <p><b>U</b> is not in the word in any spot.</p>
+    </div>"""
+    <script>
+        document.addEventListener('keydown', function(event) {
+            fetch('/keypress', {
+                method: 'POST',
+                headers: {
+                    'Content-Type' : 'application/json'
+                },
+                body: JSON.stringify({key: event.key})
+            }).then(() => {
+                fetch('/progress_update')
+                    .then(response => response.text())
+                    .then(html => {
+                        document.querySelector('.container').innerHTML = html;
+                    });
+            });
+        });
+    </script>
+</body>

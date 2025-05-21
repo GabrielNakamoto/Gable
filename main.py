@@ -1,13 +1,36 @@
-from flask import Flask, request, jsonify, session, make_response
+from flask import Flask, request, jsonify, session, make_response, render_template, url_for
 import random
 
 app = Flask(__name__)
 app.secret_key = "dev"
 
 # TODO
-# - 'how to' page
+# X 'how to' page
 # - alerts: tell user the correct word, or if they do something invalid
-# - use flask templates?
+# X use flask templates?
+# - show keyboard state
+
+def string_to_div(word):
+    html = ""
+    for letter in word:
+        html += f'<div><p>{letter}</p></div>'
+    return "<div>" + html + "</div>" 
+
+def serialize_state():
+    html = ""
+    for word in session['guess_state']:
+        html += "<div>"
+        for letter, state in word:
+            color = "rgba(0, 0, 0, 0)"
+            if state == 1:
+                color = "rgb(120,124,127)"
+            elif state == 2:
+                color = "rgb(200,182,83)"
+            elif state == 3:
+                color = "rgb(108,169,101)"
+            html += f'<div style="background-color:{color}"><p>{letter}</p></div>'
+        html += "</div>"
+    return html
 
 @app.route("/")
 def init():
@@ -24,95 +47,10 @@ def init():
     if 'word_index' not in session:
         session['word_index'] = 0
 
-    state_divs = serialize_state()
-    head =  """<!doctype html>
-    <head>
-        <title>Gable</title>
-        <style>
-            body {
-                display: flex;
-                flex-direction: column;
-                background-color: black;
-                align-items: center;
-            }
-
-            .container {
-                display: flex;
-                flex-direction: column
-            }
-
-            .container > div {
-                display: flex;
-                flex-direction: row;
-            }
-
-            .container > div > div {
-                margin: 10px;
-                width: 50px;
-                height: 50px;
-                border: 2px solid white;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-
-            .container > div > div p {
-                font-size: 35px;
-                font-weight: bold;
-                color: white;
-            }
-
-            #title {
-                font-size: 50px;
-                color: white;
-            }
-
-            #reset {
-                margin-top: 20px;
-                padding: 10px 30px;
-            }
-        </style>
-         <script src="https://unpkg.com/htmx.org@2.0.4"></script></head>"""
-    body = f"""
-    <body>
-        <h1 id="title">Gable</h1><br><br>
-        <div class="container">{state_divs}</div>
-        <button id="reset" hx-post="/reset-state" hx-swap="none">New Word</button>"""
-    script = """
-        <script>
-            document.addEventListener('keydown', function(event) {
-                fetch('/keypress', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type' : 'application/json'
-                    },
-                    body: JSON.stringify({key: event.key})
-                }).then(() => {
-                    fetch('/progress_update')
-                        .then(response => response.text())
-                        .then(html => {
-                            document.querySelector('.container').innerHTML = html;
-                        });
-                });
-            });
-        </script>
-    """
-    return head + "<body>" + body + script + "</body>"
-def serialize_state():
-    html = ""
-    for word in session['guess_state']:
-        html += "<div>"
-        for letter, state in word:
-            color = "rgba(0, 0, 0, 0)"
-            if state == 1:
-                color = "rgb(120,124,127)"
-            elif state == 2:
-                color = "rgb(200,182,83)"
-            elif state == 3:
-                color = "rgb(108,169,101)"
-            html += f'<div style="background-color:{color}"><p>{letter}</p></div>'
-        html += "</div>"
-    return html
+    
+    return render_template("game.html",
+                           serialize_state=serialize_state,
+                           string_to_div=string_to_div)
 
 @app.route("/reset-state", methods=['POST'])
 def reset_state():
