@@ -3,8 +3,13 @@
     <title>Gable</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
+<script src="https://unpkg.com/htmx.org@2.0.4"></script>
 <body>
-    <div id="spacer"></div>
+    <div id="spacer">
+          {% for message in get_flashed_messages() %}
+            <div class="flash">{{ message }}</div>
+          {% endfor %}
+    </div>
     <div id="game">
         <h1 id="title">Gable</h1><br><br>
         <div class="container">{{ serialize_state()|safe }}</div>
@@ -24,7 +29,7 @@
         <p><b>I</b> is in the word but in the wrong spot.</p>
         {{string_to_div("ROGUE")|safe}}
         <p><b>U</b> is not in the word in any spot.</p>
-    </div>"""
+    </div>
     <script>
         document.addEventListener('keydown', function(event) {
             fetch('/keypress', {
@@ -37,7 +42,13 @@
                 fetch('/progress_update')
                     .then(response => response.text())
                     .then(html => {
-                        document.querySelector('.container').innerHTML = html;
+                        const tempDiv = document.createElement('div');
+                        tempDiv.innerHTML = html;
+
+                        document.querySelector('.container').replaceWith(
+                                tempDiv.querySelector('.container'));
+                        document.getElementById('spacer').replaceWith(
+                                tempDiv.querySelector('#spacer'));
                     });
             });
         });

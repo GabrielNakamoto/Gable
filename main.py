@@ -1,14 +1,21 @@
-from flask import Flask, request, jsonify, session, make_response, render_template, url_for
+from flask import Flask, request, jsonify, session, make_response, render_template, url_for, flash, get_flashed_messages
 import random
 
 app = Flask(__name__)
 app.secret_key = "dev"
+app.config['COLOR_SCHEME'] = [
+    "rgba(0, 0, 0, 0)",
+    "rgb(120,124,127)",
+    "rgb(200,182,83)",
+    "rgb(108,169,101)"]
 
 # TODO
 # X 'how to' page
 # - alerts: tell user the correct word, or if they do something invalid
 # X use flask templates?
 # - show keyboard state
+# - correct answer sequence?
+# if they start typing after lost, reset game, or just ignore?
 
 def string_to_div(word):
     html = ""
@@ -21,13 +28,7 @@ def serialize_state():
     for word in session['guess_state']:
         html += "<div>"
         for letter, state in word:
-            color = "rgba(0, 0, 0, 0)"
-            if state == 1:
-                color = "rgb(120,124,127)"
-            elif state == 2:
-                color = "rgb(200,182,83)"
-            elif state == 3:
-                color = "rgb(108,169,101)"
+            color = app.config['COLOR_SCHEME'][state]
             html += f'<div style="background-color:{color}"><p>{letter}</p></div>'
         html += "</div>"
     return html
@@ -46,7 +47,6 @@ def init():
         session['current_word'] = ""
     if 'word_index' not in session:
         session['word_index'] = 0
-
     
     return render_template("game.html",
                            serialize_state=serialize_state,
@@ -69,8 +69,11 @@ def reset_state():
 
 @app.route("/progress_update", methods=['GET'])
 def progress_update():
-    # also store colour state?
-    return serialize_state()
+    # return serialize_state()
+    return render_template("game.html",
+                           serialize_state=serialize_state,
+                           string_to_div=string_to_div)
+
 
 @app.route("/keypress", methods=['POST'])
 def key_callback():
@@ -78,6 +81,13 @@ def key_callback():
     key_pressed = data.get('key')
     # print(key_pressed)
     if key_pressed == "Enter":
+        # end of game
+        if session['word_index'] == 5 or session['current_word'] == session['hidden_word']:
+            if session['current_word'] == session['hidden_word']:
+                print("You win")
+                flash("You win!")
+            else:
+                flash(session['hidden_word'])
         # check if valid word
         if session['current_word'].lower() in open('wordle-Ta.txt').read().split()+open('wordle-La.txt').read().split():
             # update word state
@@ -93,6 +103,9 @@ def key_callback():
             # reset word
             session['word_index']+=1 
             session['current_word'] = ""
+        else:
+            flash("Not in word list")
+
     elif key_pressed == 'Backspace':
         session['current_word']=session['current_word'][:-1]
     elif len(key_pressed) == 1 and len(session['current_word']) < 5:
