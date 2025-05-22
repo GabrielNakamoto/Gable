@@ -9,11 +9,6 @@ app.config['COLOR_SCHEME'] = [
     "rgb(200,182,83)",
     "rgb(108,169,101)"]
 
-# TODO
-# - alerts: tell user the correct word, or if they do something invalid
-# - show keyboard state
-# - correct answer sequence?
-
 def string_to_div(word):
     html = ""
     for letter in word:
@@ -108,10 +103,9 @@ def key_callback():
             session['current_word'] = ""
         else:
             flash("Not in word list")
-
     elif key_pressed == 'Backspace':
         session['current_word']=session['current_word'][:-1]
-    elif len(key_pressed) == 1 and len(session['current_word']) < 5:
+    elif len(key_pressed) == 1 and len(session['current_word']) < 5 and key_pressed.isalpha():
         session['current_word'] += key_pressed.upper()
     session['guess_state'][session['word_index']]=[(' ', 0)] * 5
     for i, letter in enumerate(session['current_word']):
