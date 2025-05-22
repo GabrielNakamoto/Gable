@@ -10,12 +10,9 @@ app.config['COLOR_SCHEME'] = [
     "rgb(108,169,101)"]
 
 # TODO
-# X 'how to' page
 # - alerts: tell user the correct word, or if they do something invalid
-# X use flask templates?
 # - show keyboard state
 # - correct answer sequence?
-# if they start typing after lost, reset game, or just ignore?
 
 def string_to_div(word):
     html = ""
@@ -35,6 +32,8 @@ def serialize_state():
 
 @app.route("/")
 def init():
+    if 'game_over' not in session:
+        session['game_over'] = False
     if 'guess_state' not in session:
         # 0 = not entered
         # 1 = submitted, not in word
@@ -54,6 +53,7 @@ def init():
 
 @app.route("/reset-state", methods=['POST'])
 def reset_state():
+    session['game_over'] = False
     session['guess_state'] = [[(' ', 0) for _ in range(5)] for _ in range(6)]
     session['hidden_word'] = random.choice(
             [word for word in
@@ -77,19 +77,22 @@ def progress_update():
 
 @app.route("/keypress", methods=['POST'])
 def key_callback():
+    if session['game_over']:
+        return jsonify({'status':'success'})
     data = request.get_json()
     key_pressed = data.get('key')
     # print(key_pressed)
     if key_pressed == "Enter":
-        # end of game
-        if session['word_index'] == 5 or session['current_word'] == session['hidden_word']:
-            if session['current_word'] == session['hidden_word']:
-                print("You win")
-                flash("You win!")
-            else:
-                flash(session['hidden_word'])
         # check if valid word
         if session['current_word'].lower() in open('wordle-Ta.txt').read().split()+open('wordle-La.txt').read().split():
+            # end of game
+            if session['word_index'] == 5 or session['current_word'] == session['hidden_word']:
+                if session['current_word'] == session['hidden_word']:
+                    print("You win")
+                    flash("You win!")
+                else:
+                    flash(session['hidden_word'])
+                session['game_over'] = True
             # update word state
             for i, letter in enumerate(session['current_word']):
                 state = 1
