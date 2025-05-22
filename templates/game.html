@@ -12,8 +12,11 @@
     </div>
     <div id="game">
         <h1 id="title">Gable</h1><br><br>
-        <div class="container">{{ serialize_state()|safe }}</div>
+        <div class="container" id="guesses">{{ serialize_state()|safe }}</div>
         <button id="reset" hx-post="/reset-state" hx-swap="none">New Word</button>
+        <div class="container" id="key-state">
+            {{serialize_key_state()|safe}}
+        </div>
     </div>
     <div id="help">
         <h1>How To Play</h1>
@@ -45,8 +48,10 @@
                         const tempDiv = document.createElement('div');
                         tempDiv.innerHTML = html;
 
-                        document.querySelector('.container').replaceWith(
-                                tempDiv.querySelector('.container'));
+                        document.getElementById('guesses').replaceWith(
+                                tempDiv.querySelector('#guesses'));
+                        document.getElementById('key-state').replaceWith(
+                                tempDiv.querySelector('#key-state'));
                         document.getElementById('spacer').replaceWith(
                                 tempDiv.querySelector('#spacer'));
                     });

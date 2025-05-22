@@ -32,11 +32,24 @@ body {
 }
 
 #game {
-    margin-top: 30px;
+    margin-top: 5px;
     width: 600px;
     display: flex;
     flex-direction: column;
     align-items: center;
+}
+
+#key-state {
+    margin-top: 20px;
+    align-items: center;
+    scale: 0.9;
+}
+
+#key-state > div > div {
+    border-radius: 8px;
+    border: 0px solid transparent;
+    background-color: rgb(48, 48, 48);
+    height: 70px;
 }
 
 .container {

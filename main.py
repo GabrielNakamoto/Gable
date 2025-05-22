@@ -25,8 +25,25 @@ def serialize_state():
         html += "</div>"
     return html
 
+KEYBOARD = "QWERTYUIOPASDFGHJKLZXCVBNM"
+LINE_ENDS = ['P', 'L', 'M']
+LINE_STARTS = ['Q', 'A', 'Z']
+def serialize_key_state():
+    html = ""
+    for i, x in enumerate(KEYBOARD):
+        if x in LINE_STARTS:
+            html += "<div>"
+        state = session['key_state'][ord(x.lower())-ord('a')]
+        color = app.config['COLOR_SCHEME'][state]
+        html += f'<div style="background-color:{color}"><p>{x}<p></div>'
+        if x in LINE_ENDS:
+            html += "</div>"
+    return html
+
 @app.route("/")
 def init():
+    if 'key_state' not in session:
+        session['key_state'] = [0] * 26
     if 'game_over' not in session:
         session['game_over'] = False
     if 'guess_state' not in session:
@@ -44,10 +61,12 @@ def init():
     
     return render_template("game.html",
                            serialize_state=serialize_state,
+                           serialize_key_state=serialize_key_state,
                            string_to_div=string_to_div)
 
 @app.route("/reset-state", methods=['POST'])
 def reset_state():
+    session['key_state'] = [0] * 26
     session['game_over'] = False
     session['guess_state'] = [[(' ', 0) for _ in range(5)] for _ in range(6)]
     session['hidden_word'] = random.choice(
@@ -67,6 +86,7 @@ def progress_update():
     # return serialize_state()
     return render_template("game.html",
                            serialize_state=serialize_state,
+                           serialize_key_state=serialize_key_state,
                            string_to_div=string_to_div)
 
 
@@ -95,6 +115,8 @@ def key_callback():
                     state = 3
                 elif letter in session['hidden_word']:
                     state = 2
+                # only update keybaord if its a better state?
+                session['key_state'][ord(letter.lower())-ord('a')]=state
                 session['guess_state'][session['word_index']][i]=(
                     session['guess_state'][session['word_index']][i][0],
                     state)
