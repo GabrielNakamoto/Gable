@@ -12,6 +12,7 @@ body {
     padding: 10px 20px;
     color: black;
     background-color: white;
+    border-radius: 5px;
     scale: 1.25;
 }
 

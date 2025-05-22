@@ -83,7 +83,6 @@ def reset_state():
 
 @app.route("/progress_update", methods=['GET'])
 def progress_update():
-    # return serialize_state()
     return render_template("game.html",
                            serialize_state=serialize_state,
                            serialize_key_state=serialize_key_state,
@@ -96,14 +95,12 @@ def key_callback():
         return jsonify({'status':'success'})
     data = request.get_json()
     key_pressed = data.get('key')
-    # print(key_pressed)
     if key_pressed == "Enter":
         # check if valid word
         if session['current_word'].lower() in open('wordle-Ta.txt').read().split()+open('wordle-La.txt').read().split():
             # end of game
             if session['word_index'] == 5 or session['current_word'] == session['hidden_word']:
                 if session['current_word'] == session['hidden_word']:
-                    print("You win")
                     flash("You win!")
                 else:
                     flash(session['hidden_word'])
