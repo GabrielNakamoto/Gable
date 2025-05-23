@@ -1,6 +1,8 @@
 from flask import Flask, request, jsonify, session, make_response, render_template, url_for, flash, get_flashed_messages
 import random
 
+# handle yellow state when the right spot is green
+
 app = Flask(__name__)
 app.secret_key = "dev"
 app.config['COLOR_SCHEME'] = [
@@ -106,11 +108,20 @@ def key_callback():
                     flash(session['hidden_word'])
                 session['game_over'] = True
             # update word state
+            found = dict([(x, 0) for x in session['hidden_word']])
             for i, letter in enumerate(session['current_word']):
                 state = 1
-                if session['hidden_word'][i] == letter:
+                matches = [j for j, x in enumerate(session['hidden_word']) if session['current_word'][j] == x and x == letter]
+                instances = [x for x in session['hidden_word'] if x == letter]
+
+                # we colour the first n of them yellow where n is
+                # the difference between how many times its in the target
+                # word and how many times the user got it right
+                diff = len(instances) - len(matches)
+                if letter == session['hidden_word'][i]:
                     state = 3
-                elif letter in session['hidden_word']:
+                elif letter in session['hidden_word'] and found[letter] < diff:
+                    found[letter]+=1
                     state = 2
                 # only update keybaord if its a better state?
                 session['key_state'][ord(letter.lower())-ord('a')]=state
