@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, session, make_response, render_template, url_for, flash, get_flashed_messages
+from flask import Flask, request, jsonify, session, make_response, render_template, url_for, flash, get_flashed_messages, redirect
 import random
 
 # handle yellow state when the right spot is green
@@ -79,9 +79,7 @@ def reset_state():
     session['current_word'] = ""
     session['word_index'] = 0
 
-    response = make_response("")
-    response.headers["HX-Redirect"] = "/"
-    return response
+    return redirect("/")
 
 @app.route("/progress_update", methods=['GET'])
 def progress_update():

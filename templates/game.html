@@ -3,7 +3,6 @@
     <title>Gable</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-<script src="https://unpkg.com/htmx.org@2.0.4"></script>
 <body>
     <div id="spacer">
           {% for message in get_flashed_messages() %}
@@ -13,7 +12,7 @@
     <div id="game">
         <h1 id="title">Gable</h1><br><br>
         <div class="container" id="guesses">{{ serialize_state()|safe }}</div>
-        <button id="reset" hx-post="/reset-state" hx-swap="none">New Word</button>
+        <button id="reset" onclick="onNewWord()">New Word</button>
         <div class="container" id="key-state">
             {{serialize_key_state()|safe}}
         </div>
@@ -34,6 +33,14 @@
         <p><b>U</b> is not in the word in any spot.</p>
     </div>
     <script>
+        function onNewWord() {
+            fetch('/reset-state', {
+                method: 'POST'
+            }).then(() => {
+                location.reload();
+            });
+        }
+
         document.addEventListener('keydown', function(event) {
             fetch('/keypress', {
                 method: 'POST',
