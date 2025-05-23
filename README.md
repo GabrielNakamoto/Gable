@@ -1,10 +1,21 @@
 # Gable
+>[!Warning]
+> School project, pretty rushed and not my proudest work.
+> Looks cool though, learned some new stuff.
+
 Wordle copy using Flask web server, client-side javascript and server-side python.
 
 Front end all raw html and css.
 
 HTTP requests are sent to server on each key press and dynamic html updates
 are then injected into the clients webpage.
+
+>[!Warning]
+>The deployment site is <ins>much</ins> slower than running locally
+>since I chose to do most back end code in Python server-side by
+>handling ever key press as a seperate POST request.
+
+Currently hosted at: https://gable-fsqv.onrender.com
 
 -------
 ![Example image](https://github.com/GabrielNakamoto/Gable/blob/main/example.png)
