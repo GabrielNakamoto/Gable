@@ -1,20 +1,20 @@
 from flask import Flask, request, jsonify, session, make_response, render_template, url_for, flash, get_flashed_messages, redirect
 import random
 
-# handle yellow state when the right spot is green
-
 app = Flask(__name__)
 app.secret_key = "dev"
-app.config['COLOR_SCHEME'] = [
+
+color_scheme = [
     "rgba(0, 0, 0, 0)",
     "rgb(120,124,127)",
     "rgb(200,182,83)",
     "rgb(108,169,101)"]
+pickable_words = open("wordle-La.txt").read().split()
+valid_words = open("wordle-Ta.txt").read().split()
 
 def string_to_div(word):
     html = ""
-    for letter in word:
-        html += f'<div><p>{letter}</p></div>'
+    for letter in word: html += f'<div><p>{letter}</p></div>'
     return "<div>" + html + "</div>" 
 
 def serialize_state():
@@ -22,24 +22,19 @@ def serialize_state():
     for word in session['guess_state']:
         html += "<div>"
         for letter, state in word:
-            color = app.config['COLOR_SCHEME'][state]
+            color = color_scheme[state]
             html += f'<div style="background-color:{color}"><p>{letter}</p></div>'
         html += "</div>"
     return html
 
-KEYBOARD = "QWERTYUIOPASDFGHJKLZXCVBNM"
-LINE_ENDS = ['P', 'L', 'M']
-LINE_STARTS = ['Q', 'A', 'Z']
 def serialize_key_state():
     html = ""
-    for i, x in enumerate(KEYBOARD):
-        if x in LINE_STARTS:
-            html += "<div>"
+    for i, x in enumerate("QWERTYUIOPASDFGHJKLZXCVBNM"):
+        if x in ['Q', 'A', 'Z']: html += "<div>"
         state = session['key_state'][ord(x.lower())-ord('a')]
-        color = app.config['COLOR_SCHEME'][state]
+        color = color_scheme[state]
         html += f'<div style="background-color:{color}"><p>{x}<p></div>'
-        if x in LINE_ENDS:
-            html += "</div>"
+        if x in ['P', 'L', 'M']: html += "</div>"
     return html
 
 @app.route("/")
@@ -71,10 +66,7 @@ def reset_state():
     session['key_state'] = [0] * 26
     session['game_over'] = False
     session['guess_state'] = [[(' ', 0) for _ in range(5)] for _ in range(6)]
-    session['hidden_word'] = random.choice(
-            [word for word in
-                open("wordle-La.txt").read().split()]
-    ).upper()
+    session['hidden_word'] = random.choice(pickable_words).upper()
     print("Picked ", session['hidden_word'])
     session['current_word'] = ""
     session['word_index'] = 0
@@ -97,7 +89,7 @@ def key_callback():
     key_pressed = data.get('key')
     if key_pressed == "Enter":
         # check if valid word
-        if session['current_word'].lower() in open('wordle-Ta.txt').read().split()+open('wordle-La.txt').read().split():
+        if session['current_word'].lower() in pickable_words+valid_words:
             # end of game
             if session['word_index'] == 5 or session['current_word'] == session['hidden_word']:
                 if session['current_word'] == session['hidden_word']:
@@ -135,7 +127,8 @@ def key_callback():
         session['current_word']=session['current_word'][:-1]
     elif len(key_pressed) == 1 and len(session['current_word']) < 5 and key_pressed.isalpha():
         session['current_word'] += key_pressed.upper()
-    session['guess_state'][session['word_index']]=[(' ', 0)] * 5
+    if session['word_index'] < 6:
+        session['guess_state'][session['word_index']]=[(' ', 0)] * 5
     for i, letter in enumerate(session['current_word']):
         session['guess_state'][session['word_index']][i]=(letter, 0)
     return jsonify({'status':'success'})
