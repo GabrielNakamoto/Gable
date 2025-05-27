@@ -12,11 +12,16 @@ color_scheme = [
 pickable_words = open("wordle-La.txt").read().split()
 valid_words = open("wordle-Ta.txt").read().split()
 
+# Function to convert a string of letters into an outer div
+# containing seperate child divs for each letter
 def string_to_div(word):
     html = ""
     for letter in word: html += f'<div><p>{letter}</p></div>'
     return "<div>" + html + "</div>" 
 
+# Convert the game state, or each word's letter guesses
+# and corresponding colors based on accuracy to an html
+# string
 def serialize_state():
     html = ""
     for word in session['guess_state']:
@@ -27,6 +32,9 @@ def serialize_state():
         html += "</div>"
     return html
 
+# Convert the keyboard state, or each letter of
+# alphabet's corresponding colors based on guess
+# accuracy to an html string
 def serialize_key_state():
     html = ""
     for i, x in enumerate("QWERTYUIOPASDFGHJKLZXCVBNM"):
@@ -113,8 +121,10 @@ def key_callback():
                 elif letter in session['hidden_word'] and found[letter] < diff:
                     found[letter]+=1
                     state = 2
-                # only update keybaord if its a better state?
-                session['key_state'][ord(letter.lower())-ord('a')]=state
+                # update key state
+                if session['key_state'][ord(letter.lower())-ord('a')] < state:
+                    session['key_state'][ord(letter.lower())-ord('a')]=state
+                # update game state
                 session['guess_state'][session['word_index']][i]=(
                     session['guess_state'][session['word_index']][i][0],
                     state)

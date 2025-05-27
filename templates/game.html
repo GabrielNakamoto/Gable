@@ -5,6 +5,7 @@
 </head>
 <body>
     <div id="spacer">
+        <!-- Display alerts from flask server -->
           {% for message in get_flashed_messages() %}
             <div class="flash">{{ message }}</div>
           {% endfor %}
@@ -33,6 +34,9 @@
         <p><b>U</b> is not in the word in any spot.</p>
     </div>
     <script>
+        // Request flask server to reset the game,
+        // then reload the page for changes to
+        // be displayed
         function onNewWord() {
             fetch('/reset-state', {
                 method: 'POST'
@@ -42,6 +46,8 @@
         }
 
         document.addEventListener('keydown', function(event) {
+            // Send the latest key press wrapped in JSON to
+            // the flask server for game logic
             fetch('/keypress', {
                 method: 'POST',
                 headers: {
@@ -49,6 +55,8 @@
                 },
                 body: JSON.stringify({key: event.key})
             }).then(() => {
+                // Inject resultant HTML onto clients webpage
+                // through a GET request to the server
                 fetch('/progress_update')
                     .then(response => response.text())
                     .then(html => {
