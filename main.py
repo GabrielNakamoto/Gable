@@ -58,7 +58,7 @@ def init():
         # 3 = in right place
         session['guess_state'] = [[(' ', 0) for _ in range(5)] for _ in range(6)]
     if 'hidden_word' not in session:
-        session['hidden_word'] = "hello".upper()
+        session['hidden_word'] = random.choice(pickable_words).upper()
     if 'current_word' not in session:
         session['current_word'] = ""
     if 'word_index' not in session:
